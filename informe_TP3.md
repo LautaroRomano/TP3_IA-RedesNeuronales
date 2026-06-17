@@ -285,14 +285,14 @@ La siguiente tabla resume las métricas de rendimiento calculadas sobre el conju
 
 | Métrica          | VGG16   | ResNet50 |
 |------------------|---------|----------|
-| **Accuracy**     | —%      | —%       |
-| **Precision**    | —%      | —%       |
-| **Recall**       | —%      | —%       |
-| **F1-Score**     | —%      | —%       |
-| **AUC-ROC**      | —%      | —%       |
-| **Especificidad**| —%      | —%       |
+| **Accuracy**     | 96.31%  | 93.75%   |
+| **Precision**    | 95.76%  | 98.08%   |
+| **Recall**       | 98.46%  | 91.79%   |
+| **F1-Score**     | 97.09%  | 94.83%   |
+| **AUC-ROC**      | 99.24%  | 98.46%   |
+| **Especificidad**| 92.74%  | 97.01%   |
 
-*(Los valores con `—` se completan automáticamente al ejecutar el notebook)*
+Los valores fueron exportados por el notebook en `resultados_comparacion.csv`.
 
 ![Comparación de métricas entre VGG16 y ResNet50 en el conjunto de test.](comparacion_metricas.png){width=100%}
 
@@ -300,7 +300,9 @@ La siguiente tabla resume las métricas de rendimiento calculadas sobre el conju
 
 ### Performance
 
-Ambos modelos logran rendimientos competitivos en la tarea de detección de neumonía. La diferencia en accuracy y F1-Score entre VGG16 y ResNet50 es relativamente pequeña, lo que confirma que el Transfer Learning es efectivo independientemente de la arquitectura de la base.
+Ambos modelos logran rendimientos competitivos en la tarea de detección de neumonía. VGG16 obtiene el mejor desempeño global en Accuracy, Recall, F1-Score y AUC-ROC. En particular, su Recall de 98.46% indica que detecta casi todos los casos de neumonía del conjunto de prueba, reduciendo el riesgo de falsos negativos.
+
+ResNet50, en cambio, obtiene mayor Precision y Especificidad. Esto significa que cuando predice PNEUMONIA suele equivocarse menos, y además clasifica mejor las radiografías NORMAL. La contracara es que su Recall es menor, por lo que deja pasar más casos positivos que VGG16.
 
 ### Eficiencia
 

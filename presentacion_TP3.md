@@ -214,14 +214,16 @@ La línea punteada indica el inicio del Fine-Tuning
 
 | Métrica           | VGG16  | ResNet50 |
 |-------------------|--------|----------|
-| Accuracy          | —%     | —%       |
-| Precision         | —%     | —%       |
-| **Recall**        | **—%** | **—%**   |
-| F1-Score          | —%     | —%       |
-| AUC-ROC           | —%     | —%       |
+| Accuracy          | 96.31% | 93.75%   |
+| Precision         | 95.76% | 98.08%   |
+| **Recall**        | **98.46%** | **91.79%** |
+| F1-Score          | 97.09% | 94.83%   |
+| AUC-ROC           | 99.24% | 98.46%   |
 | Parámetros        | ~138M  | ~25M     |
 
 > En diagnóstico médico, **Recall = Sensibilidad** es la métrica más importante para minimizar falsos negativos.
+
+**Lectura rápida:** VGG16 detectó más casos positivos de neumonía (mayor Recall), mientras que ResNet50 fue más conservador al predecir PNEUMONIA (mayor Precision y Especificidad).
 
 ---
 
