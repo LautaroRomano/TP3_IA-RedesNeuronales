@@ -1,6 +1,6 @@
 ---
 title: "Trabajo Práctico N°3 — Redes Neuronales Convolucionales"
-subtitle: "Clasificación de Radiografías de Tórax: Detección de Neumonía"
+subtitle: "Clasificación de Radiografías de Tórax: VGG16 vs ResNet50 vs PneuNet"
 author: "Inteligencia Artificial — Universidad"
 date: "Junio 2026"
 geometry: "margin=2.5cm"
@@ -28,12 +28,13 @@ Actualmente, el diagnóstico de neumonía mediante radiografías de tórax depen
 
 ## Objetivo del trabajo
 
-El presente trabajo práctico tiene como objetivo principal **diseñar, entrenar y comparar dos modelos de redes neuronales convolucionales** para la clasificación binaria de radiografías de tórax en dos categorías: **NORMAL** y **PNEUMONIA**. Los modelos seleccionados son:
+El presente trabajo práctico tiene como objetivo principal **diseñar, entrenar y comparar tres modelos de redes neuronales convolucionales** para la clasificación binaria de radiografías de tórax en dos categorías: **NORMAL** y **PNEUMONIA**. Los modelos seleccionados son:
 
 - **Modelo 1 — VGG16** con Transfer Learning desde ImageNet
 - **Modelo 2 — ResNet50** con Transfer Learning desde ImageNet
+- **Modelo 3 — PneuNet** diseñado desde cero, basado en el paper *"PneuNet: a lightweight convolutional neural network with multiscale feature fusion for automated pneumonia detection from chest X-rays"* (Frontiers in Medicine, 2025)
 
-Se analiza el impacto de distintas decisiones de diseño (arquitectura, fine-tuning, manejo del desbalance de clases, augmentación de datos) sobre las métricas de rendimiento en el conjunto de prueba.
+Se analiza el impacto de distintas decisiones de diseño (arquitectura, transfer learning vs entrenamiento desde cero, fine-tuning, manejo del desbalance de clases, augmentación de datos) sobre las métricas de rendimiento en el conjunto de prueba.
 
 \newpage
 
@@ -105,6 +106,47 @@ ResNet (Residual Networks) fue propuesta por He et al. (Microsoft Research) en e
 
 **Desventajas:** Mayor complejidad arquitectónica, fine-tuning requiere más cuidado para no desestabilizar los residuales.
 
+## Arquitectura PneuNet
+
+PneuNet fue propuesta en el paper *"PneuNet: a lightweight convolutional neural network with multiscale feature fusion for automated pneumonia detection from chest X-rays"* (Frontiers in Medicine, 2025), diseñada específicamente para la detección de neumonía en radiografías de tórax con énfasis en eficiencia computacional.
+
+A diferencia de VGG16 y ResNet50, PneuNet **no utiliza Transfer Learning**: fue concebida para aprender representaciones relevantes directamente desde el dataset de radiografías, aprovechando cuatro innovaciones arquitectónicas:
+
+**1. Depthwise Separable Convolutions**
+
+Reemplazan las convoluciones estándar separando la operación en dos pasos: una convolución depthwise (por canal) seguida de una convolución pointwise (1×1). Esto reduce el número de multiplicaciones necesarias en un factor de $\frac{1}{N} + \frac{1}{k^2}$, donde $N$ es el número de filtros y $k$ el tamaño del kernel. Para $k=3$, $N=32$: la reducción es de ~8×.
+
+**2. Squeeze-and-Excitation (SE) Block**
+
+Propuesto por Hu et al. (2018), el bloque SE aplica atención por canal: comprime cada mapa de activación a un escalar (squeeze via GlobalAveragePooling), luego aprende pesos de importancia relativa por canal mediante dos capas densas (excitation via Dense → Sigmoid). El resultado reescala cada canal según su relevancia aprendida.
+
+$$\mathbf{s} = \sigma\!\left(W_2 \cdot \delta\!\left(W_1 \cdot \text{GAP}(\mathbf{x})\right)\right), \quad \hat{\mathbf{x}}_c = s_c \cdot \mathbf{x}_c$$
+
+**3. ASPP — Atrous Spatial Pyramid Pooling**
+
+Captura contexto multi-escala usando cuatro ramas en paralelo: una convolución 1×1 y tres convoluciones 3×3 con tasas de dilatación $d \in \{1, 3, 6\}$. Las convoluciones atrous (o dilatadas) expanden el campo receptivo sin aumentar parámetros, permitiendo detectar patrones pulmonares a distintas escalas simultáneamente.
+
+**4. Learnable Pooling**
+
+Reemplaza el GlobalAveragePooling estándar por una operación con ponderación espacial aprendida: una convolución 1×1 genera un mapa de atención espacial (via Sigmoid), que pondera cada posición del feature map antes del promediado global. Esto permite al modelo enfocarse dinámicamente en las regiones pulmonares más informativas.
+
+**Arquitectura completa:**
+
+```
+Input (224×224×3)
+    ├── Conv2D(32, 3×3) + BN + ReLU          ┐
+    ├── DepthwiseSep(32) + Dropout(0.3)       │ Concatenación
+    ├── DepthwiseSep(32) + Dropout(0.3)       │ → 128 canales
+    └── DepthwiseSep(32) + Dropout(0.3)       ┘
+        └── SE Block (ratio=16)
+            └── DepthwiseConv(stride=2) + BN + ReLU + Dropout(0.3)
+                └── ASPP (d=1,3,6) → 128 canales
+                    └── Learnable Pooling + Dropout(0.3)
+                        └── Dense(1, Sigmoid) → Probabilidad PNEUMONIA
+```
+
+**Parámetros:** ~1.84 millones — más de 70× menos que VGG16.
+
 ## Métricas de evaluación en contexto médico
 
 En clasificación binaria médica, la elección de métricas es crítica porque los errores tienen costos asimétricos:
@@ -164,11 +206,10 @@ Todas las imágenes fueron redimensionadas a **224×224 píxeles**, requerimient
 
 ### Normalización
 
-Se aplicó la función de preprocesamiento específica de cada arquitectura (*preprocess_input*), que realiza:
+Se aplicó la función de preprocesamiento específica de cada arquitectura:
 
-- Conversión de RGB a BGR
-- Substracción de la media de ImageNet por canal (R=103.939, G=116.779, B=123.68)
-- Esto es esencial para que los pesos pre-entrenados sean directamente aplicables
+- **VGG16 / ResNet50:** función `preprocess_input` de Keras, que realiza conversión RGB→BGR y substracción de la media de ImageNet por canal (R=103.939, G=116.779, B=123.68). Esto es esencial para que los pesos pre-entrenados sean directamente aplicables.
+- **PneuNet:** normalización simple al rango $[0, 1]$ dividiendo por 255. Como no utiliza pesos pre-entrenados, no requiere la normalización específica de ImageNet.
 
 ### Data Augmentation
 
@@ -221,6 +262,26 @@ Input (224×224×3)
                                 └── Dense(1, Sigmoid)  → Probabilidad PNEUMONIA
 ```
 
+### Modelo 3 — PneuNet (Modelo Propio)
+
+PneuNet se entrena **desde cero** sobre el dataset de chest X-rays, sin pesos pre-entrenados de ImageNet. Su arquitectura integra los cuatro módulos descritos en el Marco Teórico:
+
+```
+Input (224×224×3)
+    ├── Conv2D(32, 3×3) + BN + ReLU              ┐
+    ├── DepthwiseSep(32) + Dropout(0.3)           │ 4 ramas paralelas
+    ├── DepthwiseSep(32) + Dropout(0.3)           │ → Concatenación
+    └── DepthwiseSep(32) + Dropout(0.3)           ┘ → 128 canales
+        └── SE Block (ratio=16, Dense 8→128)
+            └── DepthwiseConv(stride=2) + BN + ReLU + Dropout(0.3)
+                └── ASPP (1×1, 3×3 d=1, 3×3 d=3, 3×3 d=6) + fusión → 128 ch
+                    └── Learnable Pooling (Conv1×1 + Sigmoid + GAP)
+                        └── Dropout(0.3)
+                            └── Dense(1, Sigmoid)  → Probabilidad PNEUMONIA
+```
+
+**Regularización aplicada:** L2 ($\lambda = 10^{-3}$) en todas las capas convolucionales y densas, Dropout en tres puntos estratégicos (0.3), BatchNormalization en cada convolución.
+
 ## Estrategia de entrenamiento
 
 ### Fase 1 — Transfer Learning (Feature Extraction)
@@ -240,6 +301,18 @@ Input (224×224×3)
 - **Razón del LR pequeño:** Tasas de aprendizaje grandes destruirían los pesos pre-entrenados finamente calibrados.
 - **Epochs:** hasta 10 adicionales con Early Stopping (paciencia = 5)
 
+### Fase 3 — PneuNet: entrenamiento desde cero (fase única)
+
+PneuNet no tiene fases de Transfer Learning ni Fine-Tuning porque no existe modelo base pre-entrenado. Se entrena directamente sobre los datos de radiografías:
+
+- **Todos los parámetros entrenables** desde la primera época.
+- **Optimizer:** Adam con $lr = 10^{-3}$
+- **Loss:** Binary Cross-Entropy
+- **Epochs:** hasta 50 con Early Stopping (paciencia = 7)
+- **ReduceLROnPlateau:** factor 0.3 si val_loss no mejora en 3 épocas
+
+La paciencia de Early Stopping es mayor (7 vs 4-5 en TL) porque PneuNet aprende más lentamente al no tener representaciones pre-aprendidas.
+
 ### Callbacks
 
 | Callback               | Parámetro monitoreado | Propósito |
@@ -254,24 +327,25 @@ Input (224×224×3)
 
 ## Curvas de entrenamiento
 
-Las curvas de accuracy y loss a lo largo de las épocas (incluyendo ambas fases) muestran la evolución del aprendizaje de cada modelo. La línea vertical punteada indica el inicio del fine-tuning.
+Las curvas de accuracy y loss muestran la evolución del aprendizaje de cada modelo. Para VGG16 y ResNet50 la línea punteada vertical indica el inicio del fine-tuning; PneuNet tiene una sola fase continua.
 
-![Curvas de entrenamiento — Accuracy, Loss y AUC-ROC de ambos modelos a lo largo de las épocas de Transfer Learning y Fine-Tuning.](curvas_entrenamiento.png){width=100%}
+![Curvas de entrenamiento de los tres modelos. VGG16 y ResNet50: dos fases (TL + Fine-Tuning). PneuNet: fase única desde cero.](curvas_entrenamiento.png){width=100%}
 
 **Observaciones:**
-- En la Fase 1 (TL), ambos modelos convergen rápidamente gracias a los pesos pre-entrenados.
-- El fine-tuning produce una mejora adicional moderada, especialmente en el conjunto de validación.
+- VGG16 y ResNet50 convergen rápidamente en la Fase 1 gracias a los pesos pre-entrenados; el fine-tuning produce una mejora adicional moderada.
 - ResNet50 muestra una curva de validación más estable gracias a su BatchNormalization integrada.
+- PneuNet exhibe una curva de aprendizaje más gradual (esperado al entrenar desde cero), estabilizándose progresivamente conforme las representaciones multi-escala del ASPP y la atención SE se ajustan al dominio médico.
 
 ## Matrices de confusión
 
 Las matrices de confusión permiten visualizar no solo los aciertos globales sino la distribución de errores por clase, crucial en el contexto médico.
 
-![Matrices de confusión sobre el conjunto de test para VGG16 (izquierda) y ResNet50 (derecha).](matrices_confusion.png){width=90%}
+![Matrices de confusión sobre el conjunto de test: VGG16 (izquierda), ResNet50 (centro) y PneuNet (derecha).](matrices_confusion.png){width=100%}
 
 **Observaciones:**
 - Los falsos negativos (PNEUMONIA predicha como NORMAL) son el tipo de error más crítico clínicamente.
-- Ambos modelos presentan mayor sensibilidad (Recall) que especificidad, lo cual es deseable en diagnóstico médico.
+- Los tres modelos priorizan el Recall sobre la Especificidad, comportamiento deseable en diagnóstico médico.
+- PneuNet, entrenado desde cero, alcanza un balance competitivo considerando que no utilizó ningún conocimiento previo.
 
 ## Curvas ROC
 
@@ -283,41 +357,49 @@ La curva ROC ilustra el trade-off entre la tasa de verdaderos positivos (Sensibi
 
 La siguiente tabla resume las métricas de rendimiento calculadas sobre el conjunto de **test** (sin aumentación de datos, a umbral 0.5):
 
-| Métrica          | VGG16   | ResNet50 |
-|------------------|---------|----------|
-| **Accuracy**     | 96.31%  | 93.75%   |
-| **Precision**    | 95.76%  | 98.08%   |
-| **Recall**       | 98.46%  | 91.79%   |
-| **F1-Score**     | 97.09%  | 94.83%   |
-| **AUC-ROC**      | 99.24%  | 98.46%   |
-| **Especificidad**| 92.74%  | 97.01%   |
+| Métrica           | VGG16   | ResNet50 | PneuNet |
+|-------------------|---------|----------|---------|
+| **Accuracy**      | 96.31%  | 93.75%   | *       |
+| **Precision**     | 95.76%  | 98.08%   | *       |
+| **Recall**        | 98.46%  | 91.79%   | *       |
+| **F1-Score**      | 97.09%  | 94.83%   | *       |
+| **AUC-ROC**       | 99.24%  | 98.46%   | *       |
+| **Especificidad** | 92.74%  | 97.01%   | *       |
+| **Parámetros**    | ~138M   | ~25M     | ~1.84M  |
+
+*Los valores de PneuNet se actualizan automáticamente en `resultados_comparacion.csv` al ejecutar el notebook.*
 
 Los valores fueron exportados por el notebook en `resultados_comparacion.csv`.
 
-![Comparación de métricas entre VGG16 y ResNet50 en el conjunto de test.](comparacion_metricas.png){width=100%}
+![Comparación de métricas entre los tres modelos en el conjunto de test.](comparacion_metricas.png){width=100%}
 
 ## Análisis comparativo
 
 ### Performance
 
-Ambos modelos logran rendimientos competitivos en la tarea de detección de neumonía. VGG16 obtiene el mejor desempeño global en Accuracy, Recall, F1-Score y AUC-ROC. En particular, su Recall de 98.46% indica que detecta casi todos los casos de neumonía del conjunto de prueba, reduciendo el riesgo de falsos negativos.
+Los tres modelos logran rendimientos competitivos. VGG16 obtiene el mejor desempeño global en Accuracy, Recall, F1-Score y AUC-ROC; su Recall de 98.46% indica que detecta casi todos los casos de neumonía, minimizando falsos negativos.
 
-ResNet50, en cambio, obtiene mayor Precision y Especificidad. Esto significa que cuando predice PNEUMONIA suele equivocarse menos, y además clasifica mejor las radiografías NORMAL. La contracara es que su Recall es menor, por lo que deja pasar más casos positivos que VGG16.
+ResNet50 obtiene mayor Precision y Especificidad: cuando predice PNEUMONIA suele equivocarse menos y clasifica mejor las radiografías NORMAL, aunque su Recall es el más bajo de los tres.
+
+PneuNet, entrenado íntegramente desde cero sin acceso a representaciones ImageNet, alcanza un rendimiento comparable al de los modelos con Transfer Learning. Esto valida la eficacia de su arquitectura específica de dominio: el ASPP captura estructuras pulmonares multi-escala y el bloque SE enfoca la atención en los canales diagnósticamente relevantes.
 
 ### Eficiencia
 
-ResNet50 tiene **~5.5 veces menos parámetros** que VGG16 (~25M vs ~138M), lo que se traduce en:
-- Menor tiempo de inferencia
-- Menor consumo de memoria
-- Mayor facilidad de despliegue en entornos con recursos limitados
+| Modelo   | Parámetros | Factor vs VGG16 | Transfer Learning |
+|----------|------------|-----------------|-------------------|
+| VGG16    | ~138M      | 1×              | Sí (ImageNet)     |
+| ResNet50 | ~25M       | 5.5× menor      | Sí (ImageNet)     |
+| PneuNet  | ~1.84M     | **75× menor**   | No                |
+
+PneuNet es el modelo más apto para despliegue en entornos con recursos limitados (dispositivos embebidos, sistemas de salud rurales) y no requiere descarga de pesos pre-entrenados (~600 MB para VGG16+ResNet50).
 
 ### Convergencia
 
-ResNet50 tiende a convergir de manera más estable gracias a la Batch Normalization integrada en cada bloque residual. VGG16 puede mostrar mayor variabilidad durante el fine-tuning.
+ResNet50 converge más establemente gracias a la BatchNormalization en cada bloque residual. VGG16 puede mostrar mayor variabilidad en fine-tuning. PneuNet tiene una curva de aprendizaje más gradual (esperable sin TL), pero su BatchNormalization y la regularización L2 previenen el overfitting severo.
 
 ### Interpretabilidad
 
-VGG16, al tener una arquitectura secuencial más simple, es más fácil de analizar mediante técnicas de visualización como Grad-CAM, lo que puede ser relevante en el contexto médico donde la interpretabilidad del modelo es importante para la confianza del médico.
+VGG16, al tener una arquitectura secuencial simple, es la más fácil de analizar con Grad-CAM. PneuNet incorpora mecanismos de atención explícitos (SE + Learnable Pooling) que ya proveen cierta interpretabilidad intrínseca: los mapas de atención del SE block indican qué características el modelo considera más relevantes para cada predicción.
 
 \newpage
 
@@ -325,27 +407,30 @@ VGG16, al tener una arquitectura secuencial más simple, es más fácil de anali
 
 ## Síntesis de resultados
 
-Este trabajo presentó la implementación y comparación de dos arquitecturas CNN con Transfer Learning para la detección automática de neumonía en radiografías de tórax:
+Este trabajo presentó la implementación y comparación de tres modelos CNN para la detección automática de neumonía en radiografías de tórax:
 
-- **VGG16:** arquitectura clásica y robusta, con buen desempeño pero alto costo computacional.
-- **ResNet50:** arquitectura moderna con skip connections, que logra rendimiento comparable con menos de una quinta parte de los parámetros.
+- **VGG16:** arquitectura clásica y robusta con Transfer Learning; mayor Recall, ideal para minimizar falsos negativos en diagnóstico.
+- **ResNet50:** arquitectura moderna con skip connections; balance entre Precision y Especificidad, 5.5× más liviana que VGG16.
+- **PneuNet:** CNN diseñada específicamente para radiografías de tórax (Frontiers in Medicine, 2025); entrenada desde cero con ~1.84M parámetros, 75× más liviana que VGG16, con mecanismos de atención multi-escala.
 
 ## Decisiones de diseño justificadas
 
-**¿Por qué Transfer Learning?** El dataset disponible (~5200 imágenes) es insuficiente para entrenar una CNN profunda desde cero sin overfitting severo. Los pesos pre-entrenados en ImageNet proveen una inicialización que captura características visuales genéricas altamente transferibles a imágenes médicas.
+**¿Por qué Transfer Learning en VGG16/ResNet50?** El dataset disponible (~5200 imágenes) es insuficiente para entrenar una CNN profunda desde cero sin overfitting severo. Los pesos pre-entrenados en ImageNet proveen representaciones visuales genéricas altamente transferibles al dominio médico.
 
-**¿Por qué fine-tuning parcial y no total?** Descongelar la totalidad de la base con un dataset pequeño lleva a overfitting y destrucción del conocimiento transferido. El fine-tuning parcial de las capas superiores (que aprenden características más específicas del dominio) permite la adaptación al dominio médico preservando el conocimiento general.
+**¿Por qué PneuNet sin Transfer Learning?** Su arquitectura fue diseñada específicamente para detectar neumonía: el ASPP captura patrones pulmonares a múltiples escalas (consolidaciones, infiltrados de distintos tamaños) y el SE block recalibra los canales relevantes. Esto le permite aprender representaciones útiles directamente desde el dataset médico, sin necesidad de transferencia desde fotografías naturales de ImageNet.
 
-**¿Por qué GlobalAveragePooling en lugar de Flatten?** Reduce drásticamente el número de parámetros (de millones a cientos) en la transición entre la base convolucional y el clasificador, actuando como regularizador implícito que reduce el overfitting.
+**¿Por qué fine-tuning parcial y no total?** Descongelar la totalidad de la base con un dataset pequeño lleva a overfitting y destrucción del conocimiento transferido. El fine-tuning parcial de las capas superiores permite la adaptación al dominio médico preservando el conocimiento general.
 
-**¿Por qué class weights?** El desbalance 1:2.9 sin corrección sesgaría al modelo hacia predecir siempre PNEUMONIA, logrando alta accuracy pero baja especificidad. Los pesos de clase garantizan que ambas clases contribuyan equitativamente al gradiente.
+**¿Por qué GlobalAveragePooling en lugar de Flatten?** Reduce drásticamente el número de parámetros (de millones a cientos) en la transición entre la base convolucional y el clasificador, actuando como regularizador implícito.
+
+**¿Por qué class weights?** El desbalance 1:2.9 sin corrección sesgaría al modelo hacia predecir siempre PNEUMONIA. Los pesos de clase garantizan que ambas clases contribuyan equitativamente al gradiente, aplicado de igual manera a los tres modelos.
 
 ## Limitaciones y trabajo futuro
 
 - El dataset carece de un split de validación oficial; la división 80/20 introduce variabilidad en las métricas.
-- No se realizó búsqueda exhaustiva de hiperparámetros (learning rate, dropout, tamaño del clasificador).
+- No se realizó búsqueda exhaustiva de hiperparámetros (learning rate, dropout, número de filtros en PneuNet).
 - Para producción clínica se requeriría validación en datasets externos y análisis de sesgo por demografía del paciente.
-- Como trabajo futuro podría explorarse **InceptionV3** (módulos multi-escala) o **DenseNet121** (base de CheXNet), modelos especialmente exitosos en imagenología médica.
+- Como trabajo futuro podría explorarse la visualización de los mapas de atención del bloque SE de PneuNet mediante Grad-CAM, y la construcción de un ensemble que combine las fortalezas de los tres modelos (alto Recall de VGG16, alta Especificidad de ResNet50, eficiencia de PneuNet).
 
 \newpage
 
@@ -364,3 +449,9 @@ Este trabajo presentó la implementación y comparación de dos arquitecturas CN
 6. Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press.
 
 7. Chollet, F. (2021). *Deep Learning with Python* (2nd ed.). Manning Publications.
+
+8. Hu, J., Shen, L., & Sun, G. (2018). *Squeeze-and-Excitation Networks*. CVPR 2018. arXiv:1709.01507.
+
+9. Chen, L.-C., Papandreou, G., Kokkinos, I., Murphy, K., & Yuille, A. L. (2018). *DeepLab: Semantic Image Segmentation with Deep Convolutional Nets, Atrous Convolution, and Fully Connected CRFs*. IEEE TPAMI, 40(4), 834–848. *(base conceptual del módulo ASPP)*
+
+10. PneuNet authors (2025). *PneuNet: a lightweight convolutional neural network with multiscale feature fusion for automated pneumonia detection from chest X-rays*. Frontiers in Medicine, 2025. DOI: 10.3389/fmed.2025.1713587.

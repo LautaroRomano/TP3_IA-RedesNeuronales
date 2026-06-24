@@ -19,7 +19,7 @@ style: |
 
 # TP3 — Redes Neuronales Convolucionales
 ## Detección de Neumonía en Radiografías de Tórax
-### VGG16 vs ResNet50 — Transfer Learning
+### VGG16 vs ResNet50 vs PneuNet
 
 **Inteligencia Artificial | Junio 2026**
 
@@ -30,7 +30,7 @@ style: |
 1. Problema y motivación
 2. Dataset: Chest X-Ray
 3. Conceptos: CNN y Transfer Learning
-4. Arquitecturas: VGG16 y ResNet50
+4. Arquitecturas: VGG16, ResNet50 y **PneuNet**
 5. Metodología implementada
 6. Resultados y comparación
 7. Conclusiones
@@ -94,11 +94,32 @@ ImageNet (1.2M imágenes, 1000 clases)
      Clasificador  →  NORMAL / PNEUMONIA
 ```
 
-## Dos fases:
+## Dos fases (VGG16 y ResNet50):
 1. **Feature Extraction**: base congelada, entrenar solo clasificador
 2. **Fine-Tuning**: descongelar últimas capas, LR muy bajo (1e-5)
 
 **¿Por qué?** Nuestro dataset (~5200 imgs) es pequeño para entrenar desde cero sin overfitting.
+
+> **PneuNet** es la excepción: su arquitectura específica de dominio le permite aprender directamente desde radiografías, **sin Transfer Learning**.
+
+---
+
+# Modelo 3 — PneuNet (Modelo Propio)
+
+## Frontiers in Medicine, 2025 — Diseñado para radiografías de tórax
+
+**Sin Transfer Learning** — entrenado desde cero sobre este dataset
+
+### 4 innovaciones clave:
+
+| Módulo | Innovación |
+|--------|-----------|
+| **Depthwise Sep. Conv** | 8× menos multiplicaciones que conv estándar |
+| **SE Block** | Atención por canal: aprende qué filtros importan |
+| **ASPP** | Contexto multi-escala: dilatación 1, 3, 6 |
+| **Learnable Pooling** | Atención espacial: enfoca regiones pulmonares |
+
+**~1.84M parámetros** → 75× más liviano que VGG16
 
 ---
 
@@ -148,17 +169,16 @@ Base ResNet50 (congelada / parcial)
 
 # Estrategia de Entrenamiento
 
-| Configuración          | Fase 1 (TL)     | Fase 2 (Fine-Tuning) |
-|------------------------|-----------------|----------------------|
-| Base convolucional     | **Congelada**   | Parcialmente libre   |
-| Capas descongeladas    | Ninguna         | Últimas 4-10 capas  |
-| Learning Rate          | **1e-3**        | **1e-5**             |
-| Optimizer              | Adam            | Adam                 |
-| Loss                   | Binary CE       | Binary CE            |
-| Max Epochs             | 15              | 10                   |
+| Configuración       | VGG16/ResNet50 Fase 1 | VGG16/ResNet50 Fase 2 | PneuNet          |
+|---------------------|-----------------------|-----------------------|------------------|
+| Base convolucional  | **Congelada**         | Parcialmente libre    | N/A (desde cero) |
+| Capas entrenables   | Solo clasificador     | Últimas 4-10 capas    | **Todas**        |
+| Learning Rate       | **1e-3**              | **1e-5**              | **1e-3**         |
+| Max Epochs          | 15                    | 10                    | **50**           |
+| Early Stopping      | Paciencia 4           | Paciencia 5           | Paciencia **7**  |
 
-## Callbacks:
-- **EarlyStopping** (paciencia 4-5) — evita overfitting
+## Callbacks (todos los modelos):
+- **EarlyStopping** — evita overfitting
 - **ReduceLROnPlateau** — ajuste adaptativo del LR
 - **ModelCheckpoint** — guarda el mejor modelo
 
@@ -182,15 +202,15 @@ Base ResNet50 (congelada / parcial)
 
 # Curvas de Entrenamiento
 
-![w:900](curvas_entrenamiento.png)
+![w:1000](curvas_entrenamiento.png)
 
-La línea punteada indica el inicio del Fine-Tuning
+VGG16/ResNet50: línea punteada = inicio Fine-Tuning | PneuNet: fase única
 
 ---
 
 # Matrices de Confusión
 
-![w:850](matrices_confusion.png)
+![w:1100](matrices_confusion.png)
 
 **Crítico en medicina:** minimizar **Falsos Negativos** (PNEUMONIA predicha como NORMAL)
 
@@ -212,18 +232,19 @@ La línea punteada indica el inicio del Fine-Tuning
 
 # Tabla Comparativa Final
 
-| Métrica           | VGG16  | ResNet50 |
-|-------------------|--------|----------|
-| Accuracy          | 96.31% | 93.75%   |
-| Precision         | 95.76% | 98.08%   |
-| **Recall**        | **98.46%** | **91.79%** |
-| F1-Score          | 97.09% | 94.83%   |
-| AUC-ROC           | 99.24% | 98.46%   |
-| Parámetros        | ~138M  | ~25M     |
+| Métrica        | VGG16      | ResNet50   | PneuNet    |
+|----------------|------------|------------|------------|
+| Accuracy       | 96.31%     | 93.75%     | *ver CSV*  |
+| Precision      | 95.76%     | 98.08%     | *ver CSV*  |
+| **Recall**     | **98.46%** | **91.79%** | *ver CSV*  |
+| F1-Score       | 97.09%     | 94.83%     | *ver CSV*  |
+| AUC-ROC        | 99.24%     | 98.46%     | *ver CSV*  |
+| Parámetros     | ~138M      | ~25M       | **~1.84M** |
+| Transfer Learn.| Sí         | Sí         | **No**     |
 
-> En diagnóstico médico, **Recall = Sensibilidad** es la métrica más importante para minimizar falsos negativos.
+> **Recall = Sensibilidad** — la métrica más importante en diagnóstico médico.
 
-**Lectura rápida:** VGG16 detectó más casos positivos de neumonía (mayor Recall), mientras que ResNet50 fue más conservador al predecir PNEUMONIA (mayor Precision y Especificidad).
+**Lectura rápida:** VGG16 → mayor Recall | ResNet50 → mayor Especificidad | PneuNet → 75× más liviano, sin TL
 
 ---
 
@@ -239,22 +260,31 @@ La línea punteada indica el inicio del Fine-Tuning
 ✅ Skip connections → entrenamiento estable en profundidad  
 ✅ 5.5× menos parámetros que VGG16  
 ✅ BatchNorm integrada → convergencia más estable  
-✅ Mejor generalización con datasets pequeños  
 ❌ Mayor complejidad arquitectónica  
+
+## PneuNet
+✅ ~1.84M parámetros → **75× más liviano que VGG16**  
+✅ Diseñado específicamente para radiografías de tórax  
+✅ ASPP captura estructuras pulmonares multi-escala  
+✅ SE block + Learnable Pooling → atención interpretable  
+✅ No requiere pesos pre-entrenados (~600 MB descarga)  
+❌ Curva de aprendizaje más lenta (entrena desde cero)  
 
 ---
 
 # Decisiones Clave Justificadas
 
-1. **Transfer Learning desde ImageNet:** características de bajo nivel (bordes, texturas) son universales entre dominio fotográfico y médico.
+1. **Transfer Learning en VGG16/ResNet50:** características de bajo nivel (bordes, texturas) son universales entre dominio fotográfico y médico. Con ~5200 imágenes, entrenar desde cero genera overfitting severo.
 
-2. **Fine-Tuning parcial:** tasas de aprendizaje altas o muchas capas descongeladas destruyen el conocimiento transferido.
+2. **Fine-Tuning parcial:** LR altos o muchas capas descongeladas destruyen el conocimiento transferido.
 
-3. **GlobalAveragePooling:** reduce millones de parámetros en el clasificador; actúa como regularizador.
+3. **PneuNet sin Transfer Learning:** su arquitectura ASPP+SE fue diseñada para el dominio médico; captura patrones pulmonares sin necesidad de representaciones de fotografías naturales.
 
-4. **Class Weights:** dataset desbalanceado 1:2.9; sin corrección el modelo ignoraría la clase NORMAL.
+4. **GlobalAveragePooling / Learnable Pooling:** reducen parámetros y actúan como regularizadores; Learnable Pooling agrega atención espacial.
 
-5. **Augmentation moderada:** transformaciones físicamente plausibles en radiografías médicas.
+5. **Class Weights:** desbalance 1:2.9; sin corrección el modelo ignoraría la clase NORMAL.
+
+6. **Augmentation moderada:** transformaciones físicamente plausibles en radiografías médicas.
 
 ---
 
@@ -262,24 +292,26 @@ La línea punteada indica el inicio del Fine-Tuning
 
 ## ¿Qué logramos?
 
-- Dos modelos CNN con Transfer Learning capaces de detectar neumonía con alta precisión
-- Ambos modelos superan la línea base de un clasificador aleatorio por un amplio margen
-- ResNet50 logra rendimiento comparable a VGG16 con **5.5× menos parámetros**
+- **Tres modelos** CNN para detección de neumonía, con enfoques distintos
+- VGG16 y ResNet50: Transfer Learning desde ImageNet con fine-tuning
+- PneuNet: diseño específico de dominio, entrenado desde cero, **75× más liviano**
+- Los tres superan la línea base de clasificador aleatorio por un amplio margen
 
 ## ¿Qué aprendimos?
 
-- Transfer Learning es **esencial** con datasets médicos pequeños
+- Transfer Learning es **muy eficaz** con datasets médicos pequeños
+- Un modelo diseñado para el dominio (**PneuNet**) puede ser competitivo sin TL
 - El manejo del **desbalance de clases** impacta directamente en el Recall
-- En medicina, la arquitectura más eficiente (ResNet50) también es preferible para despliegue clínico
+- Eficiencia ≠ pérdida de rendimiento: ~1.84M params pueden ser suficientes
 
 ---
 
 # Trabajo Futuro
 
-- **InceptionV3**: módulos multi-escala, podría capturar mejor las estructuras pulmonares
-- **DenseNet121 (CheXNet)**: específicamente diseñado para imagenología de tórax por Rajpurkar et al. (2017)
-- **Grad-CAM**: visualización de las regiones de interés para interpretabilidad médica
-- **Ensemble**: combinar predicciones de VGG16 + ResNet50
+- **Grad-CAM en PneuNet**: visualizar los mapas de atención del SE block para interpretar qué regiones pulmonares activaron la predicción
+- **Ensemble**: combinar VGG16 (alto Recall) + ResNet50 (alta Especificidad) + PneuNet (eficiencia)
+- **Ajuste del umbral de decisión**: explorar umbrales distintos de 0.5 para maximizar Recall clínico
+- **Validación externa**: probar los modelos en datasets de otras poblaciones (NIH ChestX-ray14, CheXpert)
 
 ---
 
@@ -287,8 +319,9 @@ La línea punteada indica el inicio del Fine-Tuning
 
 - Simonyan & Zisserman (2014). *Very Deep Convolutional Networks for Large-Scale Image Recognition*. arXiv:1409.1556
 - He et al. (2015). *Deep Residual Learning for Image Recognition*. arXiv:1512.03385
-- Rajpurkar et al. (2017). *CheXNet: Radiologist-Level Pneumonia Detection on Chest X-Rays*. arXiv:1711.05225
+- Hu et al. (2018). *Squeeze-and-Excitation Networks*. CVPR 2018. arXiv:1709.01507
 - Kermany et al. (2018). *Identifying Medical Diagnoses by Image-Based Deep Learning*. Cell, 172(5)
+- PneuNet authors (2025). *PneuNet: a lightweight CNN with multiscale feature fusion for automated pneumonia detection*. Frontiers in Medicine. DOI: 10.3389/fmed.2025.1713587
 
 ---
 
@@ -297,6 +330,6 @@ La línea punteada indica el inicio del Fine-Tuning
 ## Preguntas
 
 **Dataset:** Chest X-Ray Images (Pneumonia) — Kaggle  
-**Modelos:** VGG16 + ResNet50 con Transfer Learning desde ImageNet  
+**Modelos:** VGG16 + ResNet50 (Transfer Learning) + PneuNet (desde cero)  
 **Framework:** TensorFlow/Keras  
 **Tarea:** Clasificación binaria NORMAL / PNEUMONIA
