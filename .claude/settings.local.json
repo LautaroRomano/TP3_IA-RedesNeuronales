@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(pip index *)"
+      "PowerShell(pip index *)",
+      "WebSearch",
+      "WebFetch(domain:www.ncbi.nlm.nih.gov)",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:pmc.ncbi.nlm.nih.gov)"
     ]
   }
 }
