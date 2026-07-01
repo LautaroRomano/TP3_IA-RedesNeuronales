@@ -1,0 +1,173 @@
+[
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\dataset_distribucion.png",
+    "source_head": "# ── Distribución de clases ───────────────────────────────────────────────────── splits     = ['Train', 'Test'] normal ",
+    "cell_idx": 5,
+    "auto_idx": 0,
+    "size_bytes": 32459,
+    "notebook": "TP3_ChestXRay_VGG16_vs_ResNet50",
+    "semantic_name": "dataset_distribucion.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\dataset_muestra.png",
+    "source_head": "# ── Muestra de imágenes ──────────────────────────────────────────────────────── from PIL import Image  def show_sample",
+    "cell_idx": 6,
+    "auto_idx": 1,
+    "size_bytes": 328057,
+    "notebook": "TP3_ChestXRay_VGG16_vs_ResNet50",
+    "semantic_name": "dataset_muestra.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\train_curves_vgg_resnet.png",
+    "source_head": "# ── Curvas de entrenamiento comparativas ────────────────────────────────────── def concat_history(h1, h2):     \"\"\"Une ",
+    "cell_idx": 20,
+    "auto_idx": 2,
+    "size_bytes": 173362,
+    "notebook": "TP3_ChestXRay_VGG16_vs_ResNet50",
+    "semantic_name": "train_curves_vgg_resnet.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\confusion_vgg_resnet.png",
+    "source_head": "# ── Matrices de Confusión ────────────────────────────────────────────────────── fig, axes = plt.subplots(1, 2, figsize",
+    "cell_idx": 21,
+    "auto_idx": 3,
+    "size_bytes": 37936,
+    "notebook": "TP3_ChestXRay_VGG16_vs_ResNet50",
+    "semantic_name": "confusion_vgg_resnet.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\roc_vgg_resnet.png",
+    "source_head": "# ── Curvas ROC ──────────────────────────────────────────────────────────────── fig, ax = plt.subplots(figsize=(7, 6)) ",
+    "cell_idx": 22,
+    "auto_idx": 4,
+    "size_bytes": 40149,
+    "notebook": "TP3_ChestXRay_VGG16_vs_ResNet50",
+    "semantic_name": "roc_vgg_resnet.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\metricas_vgg_resnet.png",
+    "source_head": "# ── Tabla de métricas ────────────────────────────────────────────────────────── import pandas as pd  def compute_metri",
+    "cell_idx": 23,
+    "auto_idx": 5,
+    "size_bytes": 31544,
+    "notebook": "TP3_ChestXRay_VGG16_vs_ResNet50",
+    "semantic_name": "metricas_vgg_resnet.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\errores_vgg_resnet.png",
+    "source_head": "# ── Visualizar imágenes mal clasificadas ────────────────────────────────────── def show_errors(model, test_gen, y_true",
+    "cell_idx": 26,
+    "auto_idx": 6,
+    "size_bytes": 369124,
+    "notebook": "TP3_ChestXRay_VGG16_vs_ResNet50",
+    "semantic_name": "errores_vgg_resnet.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\errores_vgg_resnet_2.png",
+    "source_head": "# ── Visualizar imágenes mal clasificadas ────────────────────────────────────── def show_errors(model, test_gen, y_true",
+    "cell_idx": 26,
+    "auto_idx": 7,
+    "size_bytes": 374722,
+    "notebook": "TP3_ChestXRay_VGG16_vs_ResNet50",
+    "semantic_name": "errores_vgg_resnet_2.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\parametros_3modelos.png",
+    "source_head": "fig, axes = plt.subplots(1, 2, figsize=(14, 5))  names = list(models.keys()) params = [models[n].count_params() for n in",
+    "cell_idx": 9,
+    "auto_idx": 8,
+    "size_bytes": 35578,
+    "notebook": "TP3_Comparativa_3_Arquitecturas",
+    "semantic_name": "parametros_3modelos.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\metricas_3modelos.png",
+    "source_head": "def compute_metrics(y_true, y_pred, y_prob):     cm = confusion_matrix(y_true, y_pred)     tn, fp, fn, tp = cm.ravel()  ",
+    "cell_idx": 12,
+    "auto_idx": 9,
+    "size_bytes": 32678,
+    "notebook": "TP3_Comparativa_3_Arquitecturas",
+    "semantic_name": "metricas_3modelos.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\confusion_3modelos.png",
+    "source_head": "fig, axes = plt.subplots(1, 3, figsize=(16, 5)) fig.suptitle('Matrices de confusión — Test Set', fontsize=13, fontweight",
+    "cell_idx": 14,
+    "auto_idx": 10,
+    "size_bytes": 59961,
+    "notebook": "TP3_Comparativa_3_Arquitecturas",
+    "semantic_name": "confusion_3modelos.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\roc_3modelos.png",
+    "source_head": "fig, ax = plt.subplots(figsize=(8, 6)) colors = {'VGG16': 'steelblue', 'ResNet50': 'tomato', 'PneuNet': 'forestgreen'} f",
+    "cell_idx": 16,
+    "auto_idx": 11,
+    "size_bytes": 44092,
+    "notebook": "TP3_Comparativa_3_Arquitecturas",
+    "semantic_name": "roc_3modelos.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\tradeoff_accuracy_params.png",
+    "source_head": "fig, ax = plt.subplots(figsize=(10, 7)) colors = {'VGG16': 'steelblue', 'ResNet50': 'tomato', 'PneuNet': 'forestgreen'} ",
+    "cell_idx": 18,
+    "auto_idx": 12,
+    "size_bytes": 57768,
+    "notebook": "TP3_Comparativa_3_Arquitecturas",
+    "semantic_name": "tradeoff_accuracy_params.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\falsos_negativos.png",
+    "source_head": "fig, ax = plt.subplots(figsize=(10, 6)) fns = [] for name in ['VGG16', 'ResNet50', 'PneuNet']:     y_t, y_p, _ = results",
+    "cell_idx": 20,
+    "auto_idx": 13,
+    "size_bytes": 34341,
+    "notebook": "TP3_Comparativa_3_Arquitecturas",
+    "semantic_name": "falsos_negativos.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\inferencia_ejemplo.png",
+    "source_head": "def predict_one(image_path, model, preprocess_fn, threshold=THRESHOLD):     \"\"\"Devuelve (prob_pneumonia, label, imagen_p",
+    "cell_idx": 6,
+    "auto_idx": 14,
+    "size_bytes": 69334,
+    "notebook": "TP3_Evaluacion_Modelos",
+    "semantic_name": "inferencia_ejemplo.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\comparativa_4modelos.png",
+    "source_head": "def compare_models_grid(image_paths, true_labels, title_suffix=''):     n = len(image_paths)     fig, axes = plt.subplot",
+    "cell_idx": 8,
+    "auto_idx": 15,
+    "size_bytes": 288347,
+    "notebook": "TP3_Evaluacion_Modelos",
+    "semantic_name": "comparativa_4modelos.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\predicciones_4modelos.png",
+    "source_head": "from tensorflow.keras.preprocessing.image import ImageDataGenerator  def get_predictions_all_models():     \"\"\"Predice to",
+    "cell_idx": 12,
+    "auto_idx": 16,
+    "size_bytes": 1990393,
+    "notebook": "TP3_Evaluacion_Modelos",
+    "semantic_name": "predicciones_4modelos.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\threshold_sweep.png",
+    "source_head": "import numpy as np import matplotlib.pyplot as plt from sklearn.metrics import accuracy_score, precision_score, recall_s",
+    "cell_idx": 14,
+    "auto_idx": 17,
+    "size_bytes": 147528,
+    "notebook": "TP3_Evaluacion_Modelos",
+    "semantic_name": "threshold_sweep.png"
+  },
+  {
+    "out_path": "C:\\Users\\Matías\\OneDrive\\UTN\\5to\\IA\\TP3\\docs\\figures\\overfitting_train_test.png",
+    "source_head": "# Gráfico comparativo train vs test fig, axes = plt.subplots(1, 2, figsize=(14, 5))  model_order = ['VGG16_TL', 'VGG16_F",
+    "cell_idx": 18,
+    "auto_idx": 18,
+    "size_bytes": 54240,
+    "notebook": "TP3_Evaluacion_Modelos",
+    "semantic_name": "overfitting_train_test.png"
+  }
+]

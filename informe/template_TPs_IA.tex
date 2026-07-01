@@ -1,0 +1,246 @@
+%% This is file `elsarticle-template-1-num.tex',
+%%
+%% Copyright 2009 Elsevier Ltd
+%%
+%% This file is part of the 'Elsarticle Bundle'.
+%% ---------------------------------------------
+%%
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.2 of this license or (at your option) any
+%% later version.  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.2 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%%
+%% The list of all files belonging to the 'Elsarticle Bundle' is
+%% given in the file `manifest.txt'.
+%%
+%% Template article for Elsevier's document class `elsarticle'
+%% with numbered style bibliographic references
+%%
+%% $Id: elsarticle-template-1-num.tex 149 2009-10-08 05:01:15Z rishi $
+%% $URL: http://lenova.river-valley.com/svn/elsbst/trunk/elsarticle-template-1-num.tex $
+%%
+\documentclass[1p,12pt]{elsarticle}
+
+%% Use the option review to obtain double line spacing
+%% \documentclass[preprint,review,12pt]{elsarticle}
+
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn]{elsarticle}
+%% \documentclass[final,3p,times]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn]{elsarticle}
+%% \documentclass[final,5p,times]{elsarticle}
+%% \documentclass[final,5p,times,twocolumn]{elsarticle}
+
+%% if you use PostScript figures in your article
+%% use the graphics package for simple commands
+%% \usepackage{graphics}
+%% or use the graphicx package for more complicated commands
+%% \usepackage{graphicx}
+%% or use the epsfig package if you prefer to use the old commands
+%% \usepackage{epsfig}
+
+%% The amssymb package provides various useful mathematical symbols
+\usepackage{amssymb}
+%% The amsthm package provides extended theorem environments
+%% \usepackage{amsthm}
+
+%% The lineno packages adds line numbers. Start line numbering with
+%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
+%% for the whole article with \linenumbers after \end{frontmatter}.
+\usepackage{lineno}
+
+%% natbib.sty is loaded by default. However, natbib options can be
+%% provided with \biboptions{...} command. Following options are
+%% valid:
+
+%%   round  -  round parentheses are used (default)
+%%   square -  square brackets are used   [option]
+%%   curly  -  curly braces are used      {option}
+%%   angle  -  angle brackets are used    <option>
+%%   semicolon  -  multiple citations separated by semi-colon
+%%   colon  - same as semicolon, an earlier confusion
+%%   comma  -  separated by comma
+%%   numbers-  selects numerical citations
+%%   super  -  numerical citations as superscripts
+%%   sort   -  sorts multiple citations according to order in ref. list
+%%   sort&compress   -  like sort, but also compresses numerical citations
+%%   compress - compresses without sorting
+%%
+%% \biboptions{comma,round}
+
+% \biboptions{}
+
+\usepackage{epsfig}
+\usepackage[spanish]{babel}
+\usepackage[labelsep=endash]{caption}
+
+\journal{Cátedra de Inteligencia Artificial}
+
+\renewcommand{\figurename}{Fig.}
+\renewcommand{\tablename}{Tab.}
+
+\begin{document}
+
+\begin{frontmatter}
+
+%% Title, authors and addresses
+
+%% use the tnoteref command within \title for footnotes;
+%% use the tnotetext command for the associated footnote;
+%% use the fnref command within \author or \address for footnotes;
+%% use the fntext command for the associated footnote;
+%% use the corref command within \author for corresponding author footnotes;
+%% use the cortext command for the associated footnote;
+%% use the ead command for the email address,
+%% and the form \ead[url] for the home page:
+%%
+%% \title{Title\tnoteref{label1}}
+%% \tnotetext[label1]{}
+%% \author{Name\corref{cor1}\fnref{label2}}
+%% \ead{email address}
+%% \ead[url]{home page}
+%% \fntext[label2]{}
+%% \cortext[cor1]{}
+%% \address{Address\fnref{label3}}
+%% \fntext[label3]{}
+
+\title{Template Latex \\ Presentación de Trabajos Prácticos}
+
+%% use optional labels to link authors explicitly to addresses:
+%% \author[label1,label2]{<author name>}
+%% \address[label1]{<address>}
+%% \address[label2]{<address>}
+
+\autor{Nombre Estudiante 1, Nombre Estudiante 2}
+
+\catedra{Cátedra de Inteligencia Artificial \\ Ingeniería en Sistemas de Información}
+
+\begin{abstract}
+%% Text of abstract
+En el abstract los autores deben incluir los siguientes aspectos: i) Descripción del Problema (si corresponde); ii) método, técnica, herramientas, etc, aplicados al problema previamente descrito; iii) Resultado principal y conclusión general.
+\end{abstract}
+
+\begin{keyword}
+Science \sep Publication \sep Complicated
+%% keywords here, in the form: keyword \sep keyword
+
+%% MSC codes here, in the form: \MSC code \sep code
+%% or \MSC[2008] code \sep code (2000 is the default)
+
+\end{keyword}
+
+\end{frontmatter}
+
+%%
+%% Start line numbering here if you want
+%%
+% \linenumbers
+
+%% main text
+\section{Introducción}
+\label{sec:intro}
+
+El presente es el template base que se utilizará para presentar el informe de los Trabajos Prácticos (TPs) en la Cátedra de Inteligencia Artificial (IA). Todos los alumnos están obligados a emplear el formato establecido en dicha cátedra, sin embargo tiene la libertad de emplear cualquiera de las dos opciones que se presentan: \textit{Latex} o \textit{Word}.
+
+Desde una vista general, todo informe de algún TPs o el Trabajo Final de la materia debe contemplar mínimamente un conjunto de secciones:
+
+\begin{itemize}
+	\item Resumen: Establece en forma breve lo que se encuentra descrito en el documento. Se describe el problema a abordar, el método empleado o propuesto, los experimentos llevados a cabos, el mejor resultados obtenido y la conclusión general del trabajo.
+	\item Introducción: Establece el marco general y particular del problema a abordar.
+	\item Propuesta de desarrollo: Abarca la propuesta y el diseño de la solución al problema descrito anteriormente.
+	\item Experimentos y resultados: establece los experimentos a realizar, se compara y analiza los resultados obtenidos.
+	\item Conclusiones: se enuncia las conclusiones obtenidas.
+	\item Referencias: conjunto de referencias empleadas en el documento.
+\end{itemize}
+
+Dichas secciones pueden varias, por lo tanto las mismas son a modo orientativo, aunque es recomendable siempre tener una estructura establecida para homogeneizar el formato de presentación de TPs.
+
+\section{Documento en versión Latex} % (fold)
+\label{sec:documento_latex}
+
+Como ha de notarse, el presente es un documento generado a través de Latex. Para compilar este documento de Latex, es posible instalar y configurar un entorno soportado por \textit{TexLive}\footnote{https://tug.org/texlive/acquire-netinstall.html} o \textit{MikTex}\footnote{https://miktex.org/} y una IDE para el desarrollo como \textit{Texmaker}\footnote{http://www.xm1math.net/texmaker/}.
+
+Por otro lado, también es factible de usar compiladores online de latex, tal cual lo ofrece la herramienta web \textbf{Overleaf}\footnote{https://www.overleaf.com/}. La misma permite agregar los archivos Latex, para compilar y mostrar el archivo pdf generado.
+
+A continuación, a modo de guía rápida se presentarán los elementos básicos de Latex.
+
+\subsection{¿Cómo trabajar con Bibliografía?} % (fold)
+\label{sub:biblio}
+
+En todo documento académico, es de suma importancia proveer el conjunto de referencias bibliográficas del material empleado en el trabajo. Esto se realiza con el fin de dar el marco contextual con el cual se describe el problema a tratar y las herramientas o enfoque empleado. Deben tener en cuenta que las referencias bibliográficas se expresan con algún formato establecido, usando el comando \textbackslash cite\{ref\}. A continuación podemos ver cómo queda denotada una referencia y en la sección autogenerada de \textbf{Referencias} se encuentra el detalle de las mismas.
+
+Maecenas \cite{Smith:2012qr} fermentum \cite{Smith:2013jd} urna ac sapien tincidunt lobortis. Nunc feugiat faucibus varius. Ut sed purus nunc. Ut eget eros quis lectus mollis pharetra ut in tellus. Pellentesque ultricies velit sed orci pharetra et fermentum lacus imperdiet.
+
+La mayoría de las referencias son aportadas a partir de \textbf{artículos científicos} (paper) o \textbf{libros/capítulos de libros}. Referencias a herramientas por sus páginas oficiales también son tenidas en cuenta pero en formato de \textbackslash footnote\{texto al pie de página\}. Es recomendable utilizar algún programa que ayude en la organización de la bibliografía, como ser \textit{Zotero}, \textit{Mendelay} o \textit{Google Scholar Button}, los cuales permiten guardar referencias y exportar en formato ``bib'', el cual utiliza por defecto Latex para administrar las referencias bibliográficas. Todas las referencias se almacenan el un archivo tipo bib, por ejemplo ``bibliografía.bib''. Este archivo es como una base de datos de referencias, las cuales a medida que se citan en el cuerpo del texto son agregadas automáticamente en la sección ``Referencias''.
+
+\subsection{Usando itemizados} % (fold)
+\label{sub:itemizados}
+
+En latex, existen los llamados ``enviroments'', que se denotan por el comando \textbackslash begin\{...\} y \textbackslash end\{...\}. En el caso de los itemizados, lo que llevaría dentro de las llaves sería la palabra reservada \textit{itemize} o \textit{enumerate}. Seguido, podemos ver ejemplos de los dos tipos de itemizados, ya sea con bullets o enumeración. Otros signos también son permitidos, pero es preferible usar los que se muestran en ésta sección.
+
+\begin{itemize}
+\item Item tipo bullet uno
+\item Item tipo bullet dos
+\end{itemize}
+
+% Tal cual puede notarse, lo que cambia es simplemente el environment de "itemize" a "enumerate".
+\begin{enumerate}
+\item Item tipo enumeración uno
+\item Item tipo enumeración dos
+\end{enumerate}
+
+\subsection{Empleando Tablas}
+
+El uso de las tablas es recomendable cuando se desea establecer casos a comparar, con las características de cada uno de los escenarios propuestos y también los resultados. Un ejemplo de estructura de tabla puede observarse a continuación. Para hacer referencia a las mismas, se emplea el comando \textbackslash ref\{label\_tabla\}. Finalmente, como ejemplo de referencia a la misma quedaría como se muestra seguido: Tabla \ref{tab:tabla1}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l l l}
+\hline
+\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
+\hline
+Treatment 1 & 0.0003262 & 0.562 \\
+Treatment 2 & 0.0015681 & 0.910 \\
+Treatment 3 & 0.0009271 & 0.296 \\
+\hline
+\end{tabular}
+\caption{Texto o leyenda de la tabla.}
+\label{tab:tabla1}
+\end{table}
+
+Ya que el diseño de una tabla de forma manual no es complejo pero se necesita de un mayor grado de manejo de Latex, se recomienda usar un generador automático de tabla. Con el mismo se diseña en forma gráfica la tabla, se da formato, se coloca los datos y finalmente se obtiene el código que debe copiar y pegar en el archivo latex. Se recomienda usar el generador de tablas ``Tables Generator''\footnote{https://www.tablesgenerator.com/}.
+
+\subsection{Uso de Figuras y Ecuaciones}
+
+Para el uso de figuras, es necesario tomar en cuenta el formato de la misma. En principio Latex acepta diferentes formatos, como JPG, PNG, PDF, pero es recomendable usar formatos del tipo vectorizados. La cátedra recomienda usar un formato vectorizado, como por ejemplo EPS, el cual Latex acepta a través del paquete ``epsfig'' el cual ya se encuentra agregado a éste documento, por lo cual una figura con extensión eps sería aceptada sin inconvenientes.
+
+\begin{figure}[h]
+\centering\includegraphics[width=0.4\linewidth]{placeholder}
+\caption{Leyenda o texto referente a la presente figura.}
+\label{fig:figura1}
+\end{figure}
+
+En relación a las ecuaciones, y de forma simular a las tablas, se recomienda emplear un Generador de Ecuaciones\footnote{https://www.codecogs.com/latex/eqneditor.php} para Latex para agilizar el proceso, centar la atención en el trabajo, y no en el cómo construir manualmente la ecuación deseada. A continuación se muestra un ejemplo de un ecuación.
+
+\begin{equation}
+\label{eq:emc}
+e = mc^2
+\end{equation}
+
+Una aclaración importante respecto a las figuras y las tableas, es que Latex las organiza de forma automática, en principio de forma óptima dentro del documento, por lo que no es necesario establecer manualmente en lugar específico donde se debe colocar cualquiera de éstos dos elementos.
+
+\section{Conclusiones} % (fold)
+\label{sec:conclusiones}
+
+El presente documento fue desarrollado con el objetivo de establecer pautas para la presentación de los trabajos de los alumnos que asisten a la cátedra de IA. Ejemplos se las secciones, recursos (tablas, figuras, ecuaciones) y algunos lineamientos fueron descritos a detalle.
+
+
+\bibliographystyle{model1-num-names}
+\bibliography{bibliografia}
+
+\end{document}
+
